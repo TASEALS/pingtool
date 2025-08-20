@@ -62,7 +62,7 @@ Sometimes you just want a simple ping tool with audible feedback—especially wh
 
 ## 📄 License
 
-GNU General Public License v3.0. See [`LICENSE`](LICENSE) file in the root of the directory for details.
+ See [`LICENSE`](LICENSE) 
 
 ## 💰 Sustainability
 
