@@ -4,9 +4,30 @@ using System.Diagnostics;
 using System.Threading;
 using System.Collections.Generic;
 using System.Media; // For system sounds
+using System.Runtime.InteropServices; // For OS detection
 
 class Program
 {
+    static void PlayAlertSound(string type)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            if (type == "success")
+                SystemSounds.Asterisk.Play();
+            else
+                SystemSounds.Hand.Play();
+        }
+        else
+        {
+            // Console.Beep() works on Windows and some Linux terminals, macOS maybe?
+            try
+            {
+                Console.Beep();
+            }
+            catch { /* Ignore if not supported */ }
+        }
+    }
+
     static void Main(string[] args)
     {
         if (args.Length < 1)
@@ -101,13 +122,13 @@ class Program
                     roundTripTimes.Add(reply.RoundtripTime);
                     Console.WriteLine($"{dataSize} bytes from {reply.Address}: icmp_seq={transmitted} ttl={reply.Options?.Ttl ?? 0} time={reply.RoundtripTime} ms");
                     if (alertMode == "success")
-                        SystemSounds.Asterisk.Play();
+                        PlayAlertSound("success");
                 }
                 else
                 {
                     Console.WriteLine($"From {target}: icmp_seq={transmitted} {reply.Status.ToString()}");
                     if (alertMode == "failure")
-                        SystemSounds.Hand.Play();
+                        PlayAlertSound("failure");
                 }
 
                 Thread.Sleep(1000); // Standard 1 second interval like Linux ping
@@ -116,7 +137,7 @@ class Program
             {
                 Console.WriteLine($"From {target}: icmp_seq={transmitted} Error: {ex.Message}");
                 if (alertMode == "failure")
-                    SystemSounds.Hand.Play();
+                    PlayAlertSound("failure");
             }
         }
 
