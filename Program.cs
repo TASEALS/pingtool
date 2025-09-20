@@ -23,43 +23,41 @@ class Program
         int dataSize = 56; // Default data size (like Linux ping)
         string alertMode = "failure"; // Default alert mode
 
-        // Parse arguments
-        for (int i = 1; i < args.Length; i++)
+        // Dictionary for option handlers
+        var optionHandlers = new Dictionary<string, Action<string>>(StringComparer.OrdinalIgnoreCase)
         {
-            if (args[i] == "-c" && i + 1 < args.Length)
-            {
-                if (int.TryParse(args[i + 1], out int specifiedCount))
-                {
+            ["-c"] = val => {
+                if (int.TryParse(val, out int specifiedCount))
                     count = specifiedCount;
-                }
-                i++; // Skip the next argument since we consumed it
-            }
-            else if (args[i] == "-s" && i + 1 < args.Length)
-            {
-                if (int.TryParse(args[i + 1], out int size) && size > 0 && size <= 65500)
-                {
+            },
+            ["-s"] = val => {
+                if (int.TryParse(val, out int size) && size > 0 && size <= 65500)
                     dataSize = size;
-                }
                 else
                 {
                     Console.WriteLine("Error: Size must be between 1 and 65500 bytes");
-                    return;
+                    Environment.Exit(1);
                 }
-                i++; // Skip the next argument since we consumed it
-            }
-            else if (args[i] == "-a" && i + 1 < args.Length)
-            {
-                string mode = args[i + 1].ToLower();
+            },
+            ["-a"] = val => {
+                var mode = val.ToLower();
                 if (mode == "success" || mode == "failure")
-                {
                     alertMode = mode;
-                }
                 else
                 {
                     Console.WriteLine("Error: Alert mode must be either 'success' or 'failure'");
-                    return;
+                    Environment.Exit(1);
                 }
-                i++; // Skip the next argument since we consumed it
+            }
+        };
+
+        // Parse arguments using the dictionary
+        for (int i = 1; i < args.Length; i++)
+        {
+            if (optionHandlers.TryGetValue(args[i], out var handler) && i + 1 < args.Length)
+            {
+                handler(args[i + 1]);
+                i++; // Skip the value
             }
         }
 
